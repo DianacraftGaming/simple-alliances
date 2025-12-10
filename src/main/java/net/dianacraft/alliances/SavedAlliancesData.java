@@ -56,6 +56,13 @@ public class SavedAlliancesData extends SavedData {
         return false;
     }
 
+    public Alliance getAlliance(String name){
+        for (Alliance alliance : alliances){
+            if (alliance.getName().equals(name)) return alliance;
+        }
+        return null;
+    }
+
     public static SavedAlliancesData getSavedAllianceData(MinecraftServer server){
         ServerLevel level = server.getLevel(ServerLevel.OVERWORLD);
         if (level == null) return new SavedAlliancesData();

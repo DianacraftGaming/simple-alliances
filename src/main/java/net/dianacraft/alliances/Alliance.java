@@ -2,6 +2,8 @@ package net.dianacraft.alliances;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,5 +42,37 @@ public class Alliance {
 
     private static <T> List<T> reList(List<T> list){
         return new ArrayList<>(list);
+    }
+
+    public void sendMessage(ServerPlayer player, String message){
+        player.displayClientMessage(Component.literal("§6["+displayName+"] §r"+message), false);
+    }
+
+    public void join(ServerPlayer player){
+        if (!players.contains(player.getScoreboardName())){
+            players.add(player.getScoreboardName());
+            sendMessage(player, "You have been added to the alliance.");
+        }
+    }
+
+    public void join(ServerPlayer target, ServerPlayer actor){
+        if (players.contains(target.getScoreboardName())) {
+            sendMessage(actor, target.getScoreboardName()+" is already in the alliance.");
+        } else {
+            players.add(target.getScoreboardName());
+            sendMessage(target, "You have been added to the alliance by " + actor.getScoreboardName() + ".");
+        }
+    }
+
+    private List<ServerPlayer> getServerPlayers(){
+        List<ServerPlayer> result = new ArrayList<>();
+        for (String username : players){
+
+        }
+        return result;
+    }
+
+    public boolean isMember(ServerPlayer player){
+        return players.contains(player.getScoreboardName());
     }
 }
