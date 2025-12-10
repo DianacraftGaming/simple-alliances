@@ -148,17 +148,19 @@ public class AllianceCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player == null){
-            context.getSource().sendSystemMessage(Component.literal("test text"));
+            context.getSource().sendSystemMessage(Component.literal("Member List: "+alliance.getPlayers().toString()));
             //Main.LOGGER.info();
             return 0;
-        } else if (alliance.isMember(player) || PlayerUtils.isAdmin(player)){
-            if (alliance == null){
-                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+        } else if (alliance != null) {
+            if (alliance.isMember(player) || PlayerUtils.isAdmin(player)){
+                alliance.sendMessage(player, "Member List: "+alliance.getPlayers().toString());
+                return 1;
             } else {
-
+                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+                return 0;
             }
         }
-
+        PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
         return 0;
     }
 
@@ -167,6 +169,22 @@ public class AllianceCommand {
     }
 
     public static int sendMessage(CommandContext<CommandSourceStack> context){
+        SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
+        String name = context.getArgument("name", String.class);
+        String message = context.getArgument("message", String.class);
+        Alliance alliance = alliancesData.getAlliance(name);
+        ServerPlayer player = context.getSource().getPlayer();
+
+        if (player != null) {
+            if (alliance == null) {
+                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+                return 0;
+            }
+            if (alliance.isMember(player)) {
+                alliance.sendMessageAs(player, message);
+                return 1;
+            }
+        }
         return 0;
     }
 

@@ -3,6 +3,10 @@ package net.dianacraft.alliances;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.dianacraft.alliances.util.PlayerUtils;
+import net.dianacraft.alliances.util.TextUtils;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
@@ -78,6 +82,7 @@ public class Alliance {
             sendMessageExcluding(actor, target.getScoreboardName()+" has been invited to the alliance by "+actor.getScoreboardName());
             players.add(target.getScoreboardName());
             sendMessage(target, "You have been invited to the alliance by " + actor.getScoreboardName() + ".");
+            sendMessage(actor, "You invited " + target.getScoreboardName() + " to the alliance.");
             return 1;
         }
     }
@@ -95,5 +100,14 @@ public class Alliance {
 
     public boolean isMember(ServerPlayer player){
         return players.contains(player.getScoreboardName());
+    }
+
+    public static Component getVotingButtons(ServerPlayer actor, ServerPlayer target) {
+        return TextUtils.format(actor.getScoreboardName() + " started a votekick for " + target.getScoreboardName() + "\n {}     {}", TextUtils.hereText(voteKick(actor, target, true),"[Kick]", ChatFormatting.RED), TextUtils.hereText(voteKick(actor, target, false),"Don't Kick", ChatFormatting.DARK_GREEN));
+    }
+
+    public static ClickEvent voteKick(ServerPlayer actor, ServerPlayer target, boolean vote){
+        //return new ClickEvent.RunCommand("/execute as "+actor.getScoreboardName()+" run /alliance  " );
+        
     }
 }
