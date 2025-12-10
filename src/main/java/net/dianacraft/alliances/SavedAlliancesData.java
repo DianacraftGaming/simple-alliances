@@ -49,6 +49,14 @@ public class SavedAlliancesData extends SavedData {
         return createAlliance(name, name);
     }
 
+    public void deleteAlliance(String name){
+        Alliance alliance = getAlliance(name);
+        if (alliance != null){
+            alliances.remove(alliance);
+            setDirty();
+        }
+    }
+
     public boolean allianceExists(String name){
         for (Alliance alliance : alliances){
             if (alliance.getName().equals(name)) return true;

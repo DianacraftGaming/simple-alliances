@@ -2,7 +2,7 @@ package net.dianacraft.alliances;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.network.chat.Component;
+import net.dianacraft.alliances.util.PlayerUtils;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
@@ -45,29 +45,50 @@ public class Alliance {
     }
 
     public void sendMessage(ServerPlayer player, String message){
-        player.displayClientMessage(Component.literal("§6["+displayName+"] §r"+message), false);
+        PlayerUtils.sendMessage(player, "§6["+displayName+"]", message);
     }
 
-    public void join(ServerPlayer player){
-        if (!players.contains(player.getScoreboardName())){
-            players.add(player.getScoreboardName());
-            sendMessage(player, "You have been added to the alliance.");
+    public void sendMessageExcluding(ServerPlayer player, String message){
+        List<ServerPlayer> players = getServerPlayers();
+        for (ServerPlayer member : players){
+            if (member != player){
+                PlayerUtils.sendMessage(member, "§6["+displayName+"]", message);
+            }
         }
     }
 
-    public void join(ServerPlayer target, ServerPlayer actor){
+    public void sendMessageAs(ServerPlayer player, String message){
+        sendMessageExcluding(player, "<"+player.getScoreboardName()+"> "+message);
+    }
+
+    public int join(ServerPlayer player){
+        if (!players.contains(player.getScoreboardName())){
+            players.add(player.getScoreboardName());
+            //sendMessage(player, "You have been added to the alliance.");
+            return 1;
+        }
+        return 0;
+    }
+
+    public int join(ServerPlayer target, ServerPlayer actor){
         if (players.contains(target.getScoreboardName())) {
             sendMessage(actor, target.getScoreboardName()+" is already in the alliance.");
+            return 0;
         } else {
+            sendMessageExcluding(actor, target.getScoreboardName()+" has been invited to the alliance by "+actor.getScoreboardName());
             players.add(target.getScoreboardName());
-            sendMessage(target, "You have been added to the alliance by " + actor.getScoreboardName() + ".");
+            sendMessage(target, "You have been invited to the alliance by " + actor.getScoreboardName() + ".");
+            return 1;
         }
     }
 
     private List<ServerPlayer> getServerPlayers(){
         List<ServerPlayer> result = new ArrayList<>();
         for (String username : players){
-
+            ServerPlayer player = PlayerUtils.getPlayer(username);
+            if (player!=null){
+                result.add(player);
+            }
         }
         return result;
     }
