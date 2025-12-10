@@ -2,16 +2,16 @@
 	"schemaVersion": 1,
 	"id": "alliances",
 	"version": "${version}",
-	"name": "alliances",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Simple Alliances",
+	"description": "A simple alliance mod that adds a /teammsg alternative among other stuff!",
 	"authors": [
-		"Me!"
+		"DianacraftGaming"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/DianacraftGaming/simple-alliances"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/alliances/icon.png",
 	"environment": "*",
 	"entrypoints": {

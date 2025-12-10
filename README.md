@@ -15,10 +15,9 @@ The mod requires no extra steps to setup. Any player can use the following comma
 
 `/alliance members <alliance>` lists all members of an alliance. Requires either being a part of the alliance or admin permissions
 
-`/alliance kick <name> <username> [<reason>]` starts a vote to kick a member of the alliance. The reason field is optional and can have spaces
-
 `/allymsg <name> <message>` sends a message to all members of the specified alliance
 
+A votekick command is being worked on and will release in v1.1
 ## Extra info
 I plan to mainly release versions I myself am going to play on, so I will most likely skip a few. If there's a particular version you'd like me to release a version of the mod for, feel free to contact me either on Discord(my username is dianacraft) or by creating an issue on [GitHub](https://github.com/DianacraftGaming/simple-alliances/issues), and I'll get that done for you!
 # Thank you for enjoying the mod!

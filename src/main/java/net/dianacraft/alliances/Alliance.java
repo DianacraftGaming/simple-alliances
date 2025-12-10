@@ -102,12 +102,12 @@ public class Alliance {
         return players.contains(player.getScoreboardName());
     }
 
-    public static Component getVotingButtons(ServerPlayer actor, ServerPlayer target) {
+    /*public static Component getVotingButtons(ServerPlayer actor, ServerPlayer target) {
         return TextUtils.format(actor.getScoreboardName() + " started a votekick for " + target.getScoreboardName() + "\n {}     {}", TextUtils.hereText(voteKick(actor, target, true),"[Kick]", ChatFormatting.RED), TextUtils.hereText(voteKick(actor, target, false),"Don't Kick", ChatFormatting.DARK_GREEN));
     }
 
     public static ClickEvent voteKick(ServerPlayer actor, ServerPlayer target, boolean vote){
         //return new ClickEvent.RunCommand("/execute as "+actor.getScoreboardName()+" run /alliance  " );
-        
-    }
+
+    }*/
 }

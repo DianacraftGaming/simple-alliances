@@ -40,13 +40,13 @@ public class AllianceCommand {
                 .then(Commands.argument("name", StringArgumentType.string())
                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(getAdminAllianceSuggestions(context), builder))
                     .executes(AllianceCommand::listMembers)))
-            .then(Commands.literal("kick")
+            /*.then(Commands.literal("kick")
                 .then(Commands.argument("name", StringArgumentType.string())
                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(getAllianceSuggestions(context), builder))
                     .then(Commands.argument("username", EntityArgument.player())
                         .executes(AllianceCommand::startVoteKick)
                         .then(Commands.argument("message", StringArgumentType.greedyString())
-                            .executes(AllianceCommand::startVoteKick))))));
+                            .executes(AllianceCommand::startVoteKick)))))*/);
 
         dispatcher.register(Commands.literal("allymsg")
             .then(Commands.argument("name", StringArgumentType.string())
