@@ -52,6 +52,13 @@ public class Alliance {
         PlayerUtils.sendMessage(player, "§6["+displayName+"]", message);
     }
 
+    public void sendMessage(String message){
+        List<ServerPlayer> players = getServerPlayers();
+        for (ServerPlayer member : players){
+            PlayerUtils.sendMessage(member, "§6["+displayName+"]", message);
+        }
+    }
+
     public void sendMessageExcluding(ServerPlayer player, String message){
         List<ServerPlayer> players = getServerPlayers();
         for (ServerPlayer member : players){
@@ -62,7 +69,8 @@ public class Alliance {
     }
 
     public void sendMessageAs(ServerPlayer player, String message){
-        sendMessageExcluding(player, "<"+player.getScoreboardName()+"> "+message);
+        sendMessage("<"+player.getScoreboardName()+"> "+message);
+
     }
 
     public int join(ServerPlayer player){
@@ -76,13 +84,13 @@ public class Alliance {
 
     public int join(ServerPlayer target, ServerPlayer actor){
         if (players.contains(target.getScoreboardName())) {
-            sendMessage(actor, target.getScoreboardName()+" is already in the alliance.");
+            PlayerUtils.sendAnnouncement(actor, target.getScoreboardName()+" is already in the alliance.", false);
             return 0;
         } else {
-            sendMessageExcluding(actor, target.getScoreboardName()+" has been invited to the alliance by "+actor.getScoreboardName());
+            sendMessageExcluding(actor, target.getScoreboardName()+" has been added to the alliance by "+actor.getScoreboardName());
             players.add(target.getScoreboardName());
-            sendMessage(target, "You have been invited to the alliance by " + actor.getScoreboardName() + ".");
-            sendMessage(actor, "You invited " + target.getScoreboardName() + " to the alliance.");
+            sendMessage(target, "You have been added to the alliance by " + actor.getScoreboardName() + ".");
+            PlayerUtils.sendAnnouncement(actor, "You added " + target.getScoreboardName() + " to ["+displayName+"]", true);
             return 1;
         }
     }

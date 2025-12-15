@@ -27,7 +27,7 @@ public class AllianceCommand {
                     .executes(AllianceCommand::createAlliance)
                     .then(Commands.argument("displayName", StringArgumentType.greedyString())
                         .executes(AllianceCommand::createAlliance))))
-            .then(Commands.literal("invite")
+            .then(Commands.literal("add")
                 .then(Commands.argument("name", StringArgumentType.string())
                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(getAllianceSuggestions(context), builder))
                     .then(Commands.argument("username", EntityArgument.player())
@@ -46,7 +46,14 @@ public class AllianceCommand {
                     .then(Commands.argument("username", EntityArgument.player())
                         .executes(AllianceCommand::startVoteKick)
                         .then(Commands.argument("message", StringArgumentType.greedyString())
-                            .executes(AllianceCommand::startVoteKick)))))*/);
+                            .executes(AllianceCommand::startVoteKick)))))
+            .then(Commands.literal("rename")
+                .then(Commands.argument("name", StringArgumentType.string())
+                .suggests((context, builder) -> SharedSuggestionProvider.suggest(getAllianceSuggestions(context), builder))
+                    .then(Commands.argument("newName", StringArgumentType.string())
+                        .executes(AllianceCommand::startVoteRename)
+                        .then(Commands.argument("newDisplayName", StringArgumentType.greedyString())
+                            .executes(AllianceCommand::startVoteRename)))))*/);
 
         dispatcher.register(Commands.literal("allymsg")
             .then(Commands.argument("name", StringArgumentType.string())
@@ -73,9 +80,9 @@ public class AllianceCommand {
         ServerPlayer player = context.getSource().getPlayer();
         if (player != null){
             if (result == 0){
-                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cAlliance "+name+" already exists.");
+                PlayerUtils.sendAnnouncement(player, "Alliance ["+name+"] already exists.",false);
             } else {
-                PlayerUtils.sendMessage(player, "§6[Alliances]", "Alliance "+name+" created successfully.");
+                PlayerUtils.sendAnnouncement(player, "Alliance ["+displayName+"] created successfully.",true);
                 return alliancesData.getAlliance(name).join(player);
             }
         }
@@ -94,25 +101,25 @@ public class AllianceCommand {
             member = EntityArgument.getPlayer(context, "username");
         } catch (CommandSyntaxException e) {
             if (player != null) {
-                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cThis player is not currently online.");
+                PlayerUtils.sendAnnouncement(player, "This player is not currently online.", false);
             }
             return 0;
         }
 
         if (player != null){
             if (alliance == null){
-                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+                PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
                 return 0;
             }
             if (alliance.isMember(player)){
                 if (member == null){
-                    PlayerUtils.sendMessage(player, "§c[Alliances]", "§cThis player is not currently online.");
+                    PlayerUtils.sendAnnouncement(player, "This player is not currently online.", false);
                     return 0;
                 } else {
                     return alliance.join(member, player);
                 }
             } else {
-                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+                PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
                 return 0;
             }
         }
@@ -129,15 +136,15 @@ public class AllianceCommand {
             return 0;
         } else if (alliance.isMember(player)){
             alliance.getPlayers().remove(player.getScoreboardName());
-            alliance.sendMessage(player, "You left the alliance.");
+            PlayerUtils.sendAnnouncement(player, "You left the alliance ["+ alliance.getDisplayName() +"]", true);
             alliance.sendMessageExcluding(player, player.getScoreboardName()+" left the alliance.");
             if (alliance.getPlayers().isEmpty()){
-                PlayerUtils.sendMessage(player, "§6[Alliances]", "Alliance "+name+" has been deleted as there are no players left in it.");
+                PlayerUtils.sendAnnouncement(player, "Alliance ["+name+"] has been deleted as there are no players left in it.", true);
                 alliancesData.deleteAlliance(name);
             }
             return 1;
         }
-        PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+        PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
         return 0;
     }
 
@@ -148,23 +155,29 @@ public class AllianceCommand {
         ServerPlayer player = context.getSource().getPlayer();
 
         if (player == null){
-            context.getSource().sendSystemMessage(Component.literal("Member List: "+alliance.getPlayers().toString()));
+            context.getSource().sendSystemMessage(Component.literal("Members of ["+alliance.getDisplayName()+"]: "+alliance.getPlayers().toString()));
             //Main.LOGGER.info();
             return 0;
         } else if (alliance != null) {
             if (alliance.isMember(player) || PlayerUtils.isAdmin(player)){
-                alliance.sendMessage(player, "Member List: "+alliance.getPlayers().toString());
+                PlayerUtils.sendAnnouncement(player, "Members of ["+alliance.getDisplayName()+"]: "+alliance.getPlayers().toString(), true);
                 return 1;
             } else {
-                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+                PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
                 return 0;
             }
         }
-        PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+        PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
         return 0;
     }
 
     public static int startVoteKick(CommandContext<CommandSourceStack> context){
+        SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
+        String name = context.getArgument("name", String.class);
+        return 0;
+    }
+
+    public static int startVoteRename(CommandContext<CommandSourceStack> context){
         return 0;
     }
 
@@ -177,7 +190,7 @@ public class AllianceCommand {
 
         if (player != null) {
             if (alliance == null) {
-                PlayerUtils.sendMessage(player, "§c[Alliances]", "§cYou are not in this alliance or it doesn't exist");
+                PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
                 return 0;
             }
             if (alliance.isMember(player)) {

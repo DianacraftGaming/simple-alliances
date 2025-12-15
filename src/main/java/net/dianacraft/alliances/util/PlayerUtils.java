@@ -11,6 +11,14 @@ public class PlayerUtils {
         player.displayClientMessage(Component.literal(prefix + " §r" + message), false);
     }
 
+    public static void sendAnnouncement(ServerPlayer player, String message, boolean success){
+        if (success){
+            sendMessage(player, "§6[Alliances]", message);
+        } else {
+            sendMessage(player, "§c[Alliances]", "§c"+message);
+        }
+    }
+
     public static ServerPlayer getPlayer(String player){
         if (server == null || player == null) return null;
         return server.getPlayerList().getPlayerByName(player);
