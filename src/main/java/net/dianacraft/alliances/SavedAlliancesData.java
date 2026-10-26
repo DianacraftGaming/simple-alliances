@@ -11,9 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SavedAlliancesData extends SavedData {
-    private List<Alliance> alliances = new ArrayList<>();
+    private static List<Alliance> alliances = new ArrayList<>();
     public List<Alliance> getAlliances() {return alliances;}
 
+    public SavedAlliancesData(){}
     public SavedAlliancesData(List<Alliance> alliances){
         this.alliances = alliances;
     }
@@ -22,15 +23,11 @@ public class SavedAlliancesData extends SavedData {
             Alliance.CODEC.listOf().xmap(SavedAlliancesData::reList, SavedAlliancesData::reList).fieldOf("alliances").forGetter(SavedAlliancesData::getAlliances)
     ).apply(instance, SavedAlliancesData::new));
     private static final SavedDataType<SavedAlliancesData> TYPE = new SavedDataType<>(
-            "saved_alliance_data",
+            Main.id("saved_alliance_data"),
             SavedAlliancesData::new,
             CODEC,
             null
     );
-
-    public SavedAlliancesData(){
-
-    }
 
     public int createAlliance(String name, String displayName){
         Alliance alliance = new Alliance(name, displayName);

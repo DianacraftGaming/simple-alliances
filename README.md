@@ -13,11 +13,17 @@ The mod requires no extra steps to setup. Any player can use the following comma
 
 `/alliance leave <name>` removes the player from the alliance. if there are no members left, the alliance is deleted
 
-`/alliance members <alliance>` lists all members of an alliance. Requires either being a part of the alliance or admin permissions
+`/alliance members <name>` lists all members of an alliance. Requires either being a part of the alliance or admin permissions
+
+`/alliance kick <name> <username>` starts a 2-minute long votekick* for the player. The two players can't participate in the vote
+
+`/alliance rename <name> <newName> [newDisplayName]` starts a 2-minute long voterename*. The player can't participate in the vote
+
+`/alliance vote <name> <kick|rename> <true|false>` casts a vote. The votes create clickable buttons in chat, so using this command isn't necessary in practice
 
 `/allymsg <name> <message>` sends a message to all members of the specified alliance
 
-A votekick command is being worked on and will release in v1.1
+-# * For the vote to succeed, more people need to vote for than against. Changing your vote during the 2-minute period is possible
 ## Extra info
 I plan to mainly release versions I myself am going to play on, so I will most likely skip a few. If there's a particular version you'd like me to release a version of the mod for, feel free to contact me either on Discord(my username is dianacraft) or by creating an issue on [GitHub](https://github.com/DianacraftGaming/simple-alliances/issues), and I'll get that done for you!
 # Thank you for enjoying the mod!

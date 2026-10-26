@@ -4,6 +4,7 @@ import net.dianacraft.alliances.command.AllianceCommand;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,9 @@ public class Main implements ModInitializer {
 	public static final String MOD_ID = "alliances";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static MinecraftServer server;
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
+    }
 
 	@Override
 	public void onInitialize() {

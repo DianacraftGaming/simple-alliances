@@ -2,13 +2,14 @@ package net.dianacraft.alliances.util;
 
 import net.dianacraft.alliances.Main;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 
 import static net.dianacraft.alliances.Main.server;
 
 public class PlayerUtils {
     public static void sendMessage(ServerPlayer player, String prefix, String message){
-        player.displayClientMessage(Component.literal(prefix + " §r" + message), false);
+        player.sendSystemMessage(Component.literal(prefix + " §r" + message), false);
     }
 
     public static void sendAnnouncement(ServerPlayer player, String message, boolean success){

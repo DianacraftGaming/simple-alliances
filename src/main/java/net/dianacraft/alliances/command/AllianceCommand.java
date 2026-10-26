@@ -1,6 +1,7 @@
 package net.dianacraft.alliances.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -14,9 +15,12 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 
 
 public class AllianceCommand {
@@ -40,20 +44,23 @@ public class AllianceCommand {
                 .then(Commands.argument("name", StringArgumentType.string())
                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(getAdminAllianceSuggestions(context), builder))
                     .executes(AllianceCommand::listMembers)))
-            /*.then(Commands.literal("kick")
+            .then(Commands.literal("vote")
+                .then(Commands.argument("name", StringArgumentType.string())
+                    .then(Commands.argument("type", StringArgumentType.string())
+                        .then(Commands.argument("vote", BoolArgumentType.bool())
+                        .executes(AllianceCommand::vote)))))
+            .then(Commands.literal("kick")
                 .then(Commands.argument("name", StringArgumentType.string())
                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(getAllianceSuggestions(context), builder))
                     .then(Commands.argument("username", EntityArgument.player())
-                        .executes(AllianceCommand::startVoteKick)
-                        .then(Commands.argument("message", StringArgumentType.greedyString())
-                            .executes(AllianceCommand::startVoteKick)))))
+                        .executes(AllianceCommand::startVoteKick))))
             .then(Commands.literal("rename")
                 .then(Commands.argument("name", StringArgumentType.string())
                 .suggests((context, builder) -> SharedSuggestionProvider.suggest(getAllianceSuggestions(context), builder))
                     .then(Commands.argument("newName", StringArgumentType.string())
                         .executes(AllianceCommand::startVoteRename)
                         .then(Commands.argument("newDisplayName", StringArgumentType.greedyString())
-                            .executes(AllianceCommand::startVoteRename)))))*/);
+                            .executes(AllianceCommand::startVoteRename))))));
 
         dispatcher.register(Commands.literal("allymsg")
             .then(Commands.argument("name", StringArgumentType.string())
@@ -62,7 +69,7 @@ public class AllianceCommand {
                     .executes(AllianceCommand::sendMessage))));
     }
 
-    public static int createAlliance(CommandContext<CommandSourceStack> context){
+    public static int createAlliance(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
         String name = context.getArgument("name", String.class);
         String displayName = null;
@@ -73,11 +80,12 @@ public class AllianceCommand {
         int result;
         if (displayName == null) {
             result = alliancesData.createAlliance(name);
+            displayName = name;
         } else {
             result = alliancesData.createAlliance(name, displayName);
         }
 
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = getPlayer(context);
         if (player != null){
             if (result == 0){
                 PlayerUtils.sendAnnouncement(player, "Alliance ["+name+"] already exists.",false);
@@ -90,11 +98,11 @@ public class AllianceCommand {
         return 0;
     }
 
-    public static int invitePlayer(CommandContext<CommandSourceStack> context){
+    public static int invitePlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
         String name = context.getArgument("name", String.class);
         Alliance alliance = alliancesData.getAlliance(name);
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = getPlayer(context);
 
         ServerPlayer member;
         try {
@@ -126,11 +134,11 @@ public class AllianceCommand {
         return 0;
     }
 
-    public static int leaveAlliance(CommandContext<CommandSourceStack> context){
+    public static int leaveAlliance(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
         String name = context.getArgument("name", String.class);
         Alliance alliance = alliancesData.getAlliance(name);
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = getPlayer(context);
 
         if (player == null){
             return 0;
@@ -148,11 +156,11 @@ public class AllianceCommand {
         return 0;
     }
 
-    public static int listMembers(CommandContext<CommandSourceStack> context){
+    public static int listMembers(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
         String name = context.getArgument("name", String.class);
         Alliance alliance = alliancesData.getAlliance(name);
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = getPlayer(context);
 
         if (player == null){
             context.getSource().sendSystemMessage(Component.literal("Members of ["+alliance.getDisplayName()+"]: "+alliance.getPlayers().toString()));
@@ -171,22 +179,80 @@ public class AllianceCommand {
         return 0;
     }
 
-    public static int startVoteKick(CommandContext<CommandSourceStack> context){
+    public static int vote(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
         String name = context.getArgument("name", String.class);
+        Alliance alliance = alliancesData.getAlliance(name);
+        ServerPlayer player = getPlayer(context);
+
+        if (player == null){
+            return 0;
+        } else if (alliance.isMember(player)){
+            String type = context.getArgument("type", String.class);
+            boolean vote = context.getArgument("vote", Boolean.class);
+            alliance.castVote(player, type, vote);
+            return 1;
+        }
+        PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
         return 0;
     }
 
-    public static int startVoteRename(CommandContext<CommandSourceStack> context){
+    public static int startVoteKick(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
+        String name = context.getArgument("name", String.class);
+        Alliance alliance = alliancesData.getAlliance(name);
+        ServerPlayer player = getPlayer(context);
+        ServerPlayer target = EntityArgument.getPlayer(context, "username");
+
+        //Main.LOGGER.info("0");
+        //if (getPlayer(context) != null) Main.LOGGER.info(getPlayer(context).getScoreboardName()); else Main.LOGGER.info("null");
+        //Main.LOGGER.info("1");
+
+        if (player == null){
+            return 0;
+        } else if (alliance.isMember(player)){
+            if (alliance.isMember(target)){
+                alliance.startVotekick(player, target.getScoreboardName());
+                return 1;
+            }
+            PlayerUtils.sendAnnouncement(player, "This player is not in the alliance", false);
+            return 0;
+        }
+        PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
         return 0;
     }
 
-    public static int sendMessage(CommandContext<CommandSourceStack> context){
+    public static int startVoteRename(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
+        String name = context.getArgument("name", String.class);
+        Alliance alliance = alliancesData.getAlliance(name);
+        ServerPlayer player = getPlayer(context);
+        String newName = StringArgumentType.getString(context, "newName");
+        String newDisplay = null;
+        try {
+            newDisplay = StringArgumentType.getString(context, "newDisplayName");
+        } catch (Exception ignored) {}
+
+        //Main.LOGGER.info("0");
+        //if (getPlayer(context) != null) Main.LOGGER.info(getPlayer(context).getScoreboardName()); else Main.LOGGER.info("null");
+        //Main.LOGGER.info("1");
+
+        if (player == null){
+            return 0;
+        } else if (alliance.isMember(player)){
+            alliance.startVoteRename(player, newName, newDisplay);
+            return 1;
+        }
+        PlayerUtils.sendAnnouncement(player, "You are not in this alliance or it doesn't exist", false);
+        return 0;
+    }
+
+    public static int sendMessage(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
         String name = context.getArgument("name", String.class);
         String message = context.getArgument("message", String.class);
         Alliance alliance = alliancesData.getAlliance(name);
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = getPlayer(context);
 
         if (player != null) {
             if (alliance == null) {
@@ -201,9 +267,9 @@ public class AllianceCommand {
         return 0;
     }
 
-    private static List<String> getAllianceSuggestions(CommandContext<CommandSourceStack> context){
+    private static List<String> getAllianceSuggestions(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = getPlayer(context);
         List<String> result = new ArrayList<>();
         if (player == null) return result;
 
@@ -215,12 +281,12 @@ public class AllianceCommand {
         return result;
     }
 
-    private static List<String> getAdminAllianceSuggestions(CommandContext<CommandSourceStack> context){
+    private static List<String> getAdminAllianceSuggestions(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         SavedAlliancesData alliancesData = SavedAlliancesData.getSavedAllianceData(context.getSource().getServer());
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = getPlayer(context);
         List<String> result = new ArrayList<>();
 
-        if (PlayerUtils.isAdmin(player)){
+        if (PlayerUtils.isAdmin(player) || player == null){
             for (Alliance alliance : alliancesData.getAlliances()){
                 result.add(alliance.getName());
             }
@@ -229,5 +295,23 @@ public class AllianceCommand {
         }
 
         return result;
+    }
+
+    private static ServerPlayer getPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayer();
+
+        String[] array = context.getInput().split(" ");
+        if (array[0].equals("execute")) {
+            String name = null;
+            for (int i = 1; i < array.length; i++){
+                if (array[i].equals("as")){
+                    name = array[i+1];
+                    break;
+                }
+            }
+            return (PlayerUtils.getPlayer(name)!=null)?PlayerUtils.getPlayer(name):player;
+        }
+
+        return player;
     }
 }
